@@ -1,1 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tiny Treasures 3D Ultrasound Game</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%; width: 100%;
+      background: #f3f7ff;
+      font-family: 'Baloo 2', Arial, Helvetica, sans-serif;
+      touch-action: none;
+      user-select: none;
+      overflow: hidden;
+    }
+    #brand {
+      width: 100vw;
+      text-align: center;
+      font-family: 'Monoton', cursive, Arial, Helvetica, sans-serif;
+      font-size: 2.1em;
+      font-weight: normal;
+      letter-spacing: 2px;
+      color: #fff;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      user-select: none;
+      text-shadow:
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px #00bfff,
+        0 0 30px #00bfff,
+        0 0 40px #00bfff,
+        0 0 55px #00bfff,
+        0 0 75px #00bfff;
+      animation: neon-flicker 1.3s infinite alternate;
+    }
+    @keyframes neon-flicker {
+      from {
+        text-shadow:
+          0 0 5px #fff,
+          0 0 10px #fff,
+          0 0 20px #00bfff,
+          0 0 30px #00bfff,
+          0 0 40px #00bfff,
+          0 0 55px #00bfff,
+          0 0 75px #00bfff;
+      }
+      to {
+        text-shadow:
+          0 0 10px #fff,
+          0 0 20px #fff,
+          0 0 30px #00bfff,
+          0 0 40px #00bfff,
+          0 0 60px #00bfff,
+          0 0 80px #00bfff,
+          0 0 100px #00bfff;
+      }
+    }
+    @media (max-width: 600px) {
+      #brand { font-size: 1.1em; }
+    }
+    #gameCanvas {
+      background: linear-gradient(to bottom, #e3f0ff 0%, #f7eaff 100%);
+      display: block;
+      margin: 0 auto;
+      border: 4px solid #b3d8ff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px #b3d8ff77;
+      touch-action: none;
+    }
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(255,255,255,0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      font-size: 2rem;
+      color: #1976d2;
+      text-align: center;
+      transition: background 0.5s;
+    }
+    #overlay.end {
+      background: linear-gradient(135deg, #e3f0ff 60%, #b3d8ff 100%) !important;
+    }
+    #overlay h1, #overlay h2 {
+      color: #00bfff;
+      font-size: 2.2em;
+      margin-bottom: 0.2em;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0 #fff, 0 2px 8px #b3d8ff77;
+    }
+    #overlay p, #overlay a {
+      color: #1976d2;
+      font-size: 1.2em;
+      margin: 0.5em 0;
+      text-shadow: 1px 1px 0 #fffde7;
+    }
+    #overlay a {
+      display: inline-block;
+      margin-top: 1em;
+      padding: 10px 30px;
+      background: #00bfff;
+      color: #fff;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 2px 8px #b3d8ff77;
+      border: 2px solid #1976d2;
+      transition: background 0.2s, color 0.2s;
+    }
+    #overlay a:hover {
+      background: #1976d2;
+      color: #fffde7;
+    }
+    #startBtn, #restartBtn {
+      margin-top: 32px;
+      padding: 14px 36px;
+      border: none;
+      background: #b3d8ff;
+      color: #1976d2;
+      font-size: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #b3d8ff77;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    #startBtn:hover, #restartBtn:hover {
+      background: #00bfff;
+      color: #fff;
+    }
+    @media (max-width: 800px) {
+      #gameCanvas { width: 99vw !important; height: 85vw !important; }
+      #overlay { font-size: 1.2rem; }
+    }
+    @media (max-width: 600px) {
+      #gameCanvas { width: 99vw !important; height: 120vw !important; }
+      #overlay { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="brand">Tiny Treasures 3D Ultrasound</div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="overlay" style="display:flex;">
+    <h1>🦩 Tiny Treasures Baby Catch 🦩</h1>
+    <p>
+      Storks fly by and drop babies!<br>
+      Move your basket to catch <b style="color:#00bfff;">three of the same color</b> baby.<br>
+      <span style="color:#1976d2;">If a baby is missed, it bounces back up for another chance!</span><br>
+      <br>
+      <b style="color:#00bfff;" id="goalMsg"></b><br>
+      <br>
+      <span style="color:#1976d2;">Touch and drag</span> the basket to move.<br>
+      <br>
+      <span style="font-size:1.3em; color:#00bfff;">Ready to play?</span>
+    </p>
+    <button id="startBtn">Start Game</button>
+  </div>
+  <script>
+    // --- GAME CONSTANTS ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      let ww = window.innerWidth, wh = window.innerHeight;
+      let cW = Math.min(ww * 0.99, 540);
+      let cH = Math.min(wh - 10, cW * 1.6, 950);
+      canvas.width = cW;
+      canvas.height = cH;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- BABY COLORS & STORKS ---
+    const BABY_COLORS = [
+      {name: "Pink", emoji: "👶🏻"},
+      {name: "Tan", emoji: "👶🏼"},
+      {name: "Brown", emoji: "👶🏽"},
+      {name: "Dark", emoji: "👶🏾"},
+      {name: "Deep", emoji: "👶🏿"},
+      {name: "Blue Blanket", emoji: "🍼"},
+      {name: "Pink Blanket", emoji: "🧸"}
+    ];
+    const STORKS = [
+      {emoji: "🦩"}, // Flamingo as stork (no stork emoji)
+      {emoji: "🕊️"}, // Dove for variety
+      {emoji: "🦢"}   // Swan for variety
+    ];
+    const GOLDEN_BABY = {name: "Golden Baby", emoji: "✨👶✨", golden: true};
+    const LEVEL_BABY_COUNTS = [3, 4, 5, BABY_COLORS.length];
+    const LEVELS = [
+      {goal: 400, speed: 2, dropRate: 70},
+      {goal: 800, speed: 2.5, dropRate: 55},
+      {goal: 1200, speed: 3, dropRate: 40},
+      {goal: 2000, speed: 3.5, dropRate: 28}
+    ];
+    const LEVEL_TIME = 40;
+
+    // --- GAME STATE ---
+    let gameState = 'start';
+    let level = 0;
+    let score = 0;
+    let timer = LEVEL_TIME;
+    let basket = [];
+    let falling = [];
+    let storks = [];
+    let dropTick = 0;
+    let basketX = 0, basketWidth = 0, basketHeight = 0;
+    let basketTargetX = 0;
+    let touchOffset = 0;
+    let redXTimer = 0;
+    let confetti = [];
+    let message = "";
+
+    // --- UI ELEMENTS ---
+    const overlay = document.getElementById('overlay');
+    const startBtn = document.getElementById('startBtn');
+    let restartBtn = null;
+
+    // --- SMART BABY DROP LOGIC ---
+    function getCurrentBabies() {
+      let count = LEVEL_BABY_COUNTS[Math.min(level, LEVEL_BABY_COUNTS.length-1)];
+      return BABY_COLORS.slice(0, count);
+    }
+    function getNextBaby() {
+      const ITEMS = getCurrentBabies();
+      if (basket.length === 2 && basket[0] === basket[1]) {
+        if (Math.random() < 0.8) {
+          return ITEMS.find(item => item.name === basket[0]);
+        }
+      }
+      if (Math.random() < 0.06) return GOLDEN_BABY;
+      return ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    }
+
+    // --- GAME LOOP ---
+    function resetGame() {
+      level = 0; score = 0; timer = LEVEL_TIME;
+      basket = []; falling = []; dropTick = 0;
+      basketX = canvas.width/2;
+      basketTargetX = basketX;
+      basketWidth = Math.max(canvas.width * 0.25, 90);
+      basketHeight = Math.max(canvas.height * 0.06, 44);
+      redXTimer = 0; confetti = [];
+      message = "";
+      storks = [];
+      // Initialize storks
+      let count = 3;
+      for (let i=0; i<count; i++) {
+        let y = 30 + i*35;
+        let dir = i%2===0 ? 1 : -1;
+        let storkType = STORKS[i%STORKS.length];
+        storks.push({
+          x: dir>0 ? -40 : canvas.width+40,
+          y: y,
+          vx: dir*2.5,
+          dir: dir,
+          emoji: storkType.emoji,
+          dropTimer: Math.random()*80+30
+        });
+      }
+    }
+
+    function startGame() {
+      gameState = 'playing';
+      resetGame();
+      overlay.style.display = 'none';
+      overlay.classList.remove('end');
+      requestAnimationFrame(gameLoop);
+    }
+
+    function nextLevel() {
+      level++;
+      if (level >= LEVELS.length) {
+        endGame(true);
+      } else {
+        timer = LEVEL_TIME;
+        basket = [];
+        falling = [];
+        dropTick = 0;
+        message = "";
+        gameState = 'between';
+        setTimeout(() => {
+          gameState = 'playing';
+          requestAnimationFrame(gameLoop);
+        }, 2500);
+        showPromo();
+      }
+    }
+
+    function endGame(won=false) {
+      gameState = 'over';
+      overlay.classList.add('end');
+      overlay.innerHTML = `
+        <h1>${won ? "🎉 You Win! 🎉" : "Game Over"}</h1>
+        <p>Your Score: <b style="color:#00bfff;">${score}</b></p>
+        <p>${won ? "You are a Tiny Treasures Champion!" : "Try again to beat your high score!"}</p>
+        <p style="font-size:1.3em; color:#1976d2;">Visit us for your 3D/4D baby ultrasound!<br>👶🏻👶🏾🦩</p>
+        <a href="https://tinytreasures3dultrasound.com/" target="_blank">Visit Tiny Treasures 3D Ultrasound!</a>
+        <button id="restartBtn">Play Again</button>
+      `;
+      overlay.style.display = 'flex';
+      restartBtn = document.getElementById('restartBtn');
+      restartBtn.onclick = () => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('end');
+        startGame();
+      };
+    }
+
+    function showPromo() {
+      overlay.classList.remove('end');
+      overlay.innerHTML = `
+        <h2>Level ${level+1} Complete!</h2>
+        <p>Your Score: <b style="color:#00bfff;">${score}</b></p>
+        <div style="font-size:1.2em;">
+          Visit us for your 3D/4D baby ultrasound!<br>
+          <span style="color:#00bfff;">👶🏻👶🏾🦩</span><br>
+          <b style="color:#ff5722;">Today's Special:</b> <span style="color:#1976d2;">Book online for best times!</span>
+        </div>
+      `;
+      overlay.style.display = 'flex';
+      setTimeout(() => { overlay.style.display = 'none'; }, 2000);
+    }
+
+    function gameLoop() {
+      if (gameState !== 'playing') return;
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+      if (timer > 0) {
+        timer -= 1/60;
+        if (timer <= 0) {
+          timer = 0;
+          if (score >= LEVELS[level].goal) {
+            nextLevel();
+          } else {
+            endGame();
+          }
+        }
+      }
+      // Move basket
+      basketX += (basketTargetX - basketX)*0.25;
+      if (basketX < basketWidth/2) basketX = basketWidth/2;
+      if (basketX > canvas.width-basketWidth/2) basketX = canvas.width-basketWidth/2;
+
+      // Move storks and drop babies
+      for (let s of storks) {
+        s.x += s.vx;
+        s.dropTimer--;
+        // If stork is on screen and dropTimer is up, drop a baby
+        if ((s.dir>0 && s.x > 40 && s.x < canvas.width-40) ||
+            (s.dir<0 && s.x < canvas.width-40 && s.x > 40)) {
+          if (s.dropTimer <= 0) {
+            let baby = getNextBaby();
+            falling.push({
+              item: baby,
+              x: s.x,
+              y: s.y+16,
+              speedY: LEVELS[level].speed+Math.random()*1.2,
+              bounced: false
+            });
+            s.dropTimer = Math.random()*80+30;
+          }
+        }
+        // Reset stork if off screen
+        if (s.dir>0 && s.x > canvas.width+40) {
+          s.x = -40;
+          s.dropTimer = Math.random()*80+30;
+        } else if (s.dir<0 && s.x < -40) {
+          s.x = canvas.width+40;
+          s.dropTimer = Math.random()*80+30;
+        }
+      }
+
+      // Move falling babies
+      for (let i=falling.length-1; i>=0; i--) {
+        let f = falling[i];
+        f.y += f.speedY;
+        // If baby missed, bounce up once
+        if (f.y > canvas.height-basketHeight*1.1 && !f.bounced) {
+          if (Math.abs(f.x-basketX) > basketWidth/2+16) {
+            f.speedY = -f.speedY*0.7;
+            f.bounced = true;
+            f.y = canvas.height-basketHeight*1.1;
+          }
+        }
+        // If baby is coming down again after bounce, allow catch
+        if (f.y > canvas.height-basketHeight*2 && Math.abs(f.x-basketX) < basketWidth/2+16) {
+          // Caught!
+          if (f.item.golden) {
+            score += 200;
+            confettiBurst();
+            message = "✨ Golden Baby! +200 ✨";
+          } else {
+            basket.push(f.item.name);
+            if (basket.length === 3) {
+              if (basket.every(n => n === basket[0])) {
+                score += 100;
+                confettiBurst();
+                message = "Triple match! +100";
+                basket = [];
+              } else {
+                redXTimer = 30;
+                message = "Oops! Basket emptied!";
+                basket = [];
+              }
+            }
+          }
+          falling.splice(i,1);
+        }
+        // Remove if off screen after bounce
+        else if (f.y > canvas.height+40) {
+          falling.splice(i,1);
+        }
+      }
+      if (redXTimer > 0) redXTimer--;
+      for (let i=confetti.length-1; i>=0; i--) {
+        let c = confetti[i];
+        c.y += c.vy; c.x += c.vx; c.vy += 0.1;
+        c.life--;
+        if (c.life <= 0) confetti.splice(i,1);
+      }
+    }
+
+    function confettiBurst() {
+      for (let i=0;i<18;i++) {
+        confetti.push({
+          x: basketX,
+          y: canvas.height-basketHeight*1.7,
+          vx: Math.cos(i/3)*Math.random()*3,
+          vy: -Math.abs(Math.sin(i/3)*Math.random()*3)-2,
+          color: `hsl(${Math.random()*360},90%,60%)`,
+          life: 24+Math.random()*12
+        });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // Draw storks
+      for (let s of storks) {
+        ctx.font = `bold ${Math.round(canvas.height*0.06)}px 'Baloo 2', Arial, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.globalAlpha = 0.9;
+        ctx.fillText(s.emoji, s.x, s.y);
+      }
+      ctx.globalAlpha = 1;
+
+      // Scoreboard
+      ctx.font = `bold ${Math.round(canvas.height*0.045)}px 'Baloo 2', Arial, sans-serif`;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#00bfff";
+      ctx.fillText(`Score:`, 18, 1+canvas.height*0.055);
+      ctx.fillStyle = "#1976d2";
+      ctx.fillText(`${score}`, 110, 1+canvas.height*0.055);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#1976d2";
+      ctx.fillText(`Level ${level+1}`, canvas.width/2, 1+canvas.height*0.055);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#1976d2";
+      ctx.fillText(`Time: ${Math.ceil(timer)}`, canvas.width-18, 1+canvas.height*0.055);
+
+      // Draw falling babies
+      for (let f of falling) {
+        ctx.font = f.item.golden
+          ? `bold ${Math.round(canvas.height*0.06)}px 'Baloo 2', Arial, sans-serif`
+          : `${Math.round(canvas.height*0.05)}px 'Baloo 2', Arial, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.globalAlpha = 1;
+        ctx.fillText(f.item.emoji, f.x, f.y);
+      }
+      ctx.globalAlpha = 1;
+
+      // Basket
+      ctx.save();
+      ctx.translate(basketX, canvas.height-basketHeight*1.2);
+      ctx.fillStyle = "#ffe082";
+      ctx.beginPath();
+      ctx.ellipse(0,0,basketWidth/2,basketHeight/2,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "#b3d8ff";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0,6,Math.max(22, basketWidth/4),Math.PI*0.15,Math.PI*0.85,false);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#00bfff";
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(-basketWidth/2+12,-8,10,Math.PI*0.5,Math.PI*1.5,false);
+      ctx.arc(basketWidth/2-12,-8,10,Math.PI*1.5,Math.PI*0.5,false);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#b3d8ff";
+      ctx.stroke();
+      for (let i=0;i<basket.length;i++) {
+        let idx = BABY_COLORS.findIndex(it=>it.name===basket[i]);
+        let emoji = idx>=0 ? BABY_COLORS[idx].emoji : "❓";
+        ctx.font = `${Math.round(canvas.height*0.045)}px 'Baloo 2', Arial, sans-serif`;
+        ctx.fillText(emoji, -24+24*i, -10);
+      }
+      ctx.restore();
+
+      if (redXTimer>0) {
+        ctx.save();
+        ctx.globalAlpha = redXTimer/30;
+        ctx.strokeStyle = "#1976d2";
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width/2-40,canvas.height/2-40);
+        ctx.lineTo(canvas.width/2+40,canvas.height/2+40);
+        ctx.moveTo(canvas.width/2+40,canvas.height/2-40);
+        ctx.lineTo(canvas.width/2-40,canvas.height/2+40);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      for (let c of confetti) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0,c.life/36);
+        ctx.fillStyle = c.color;
+        ctx.beginPath();
+        ctx.arc(c.x,c.y,4,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (message) {
+        ctx.font = `bold ${Math.round(canvas.height*0.045)}px 'Baloo 2', Arial, sans-serif`;
+        ctx.fillStyle = "#00bfff";
+        ctx.textAlign = "center";
+        ctx.fillText(message, canvas.width/2, canvas.height*0.2);
+        if (Math.random()<0.02) message = "";
+      }
+    }
+
+    let dragging = false;
+    function getTouchX(e) {
+      let rect = canvas.getBoundingClientRect();
+      let x = e.touches ? e.touches[0].clientX : e.clientX;
+      let scale = canvas.width / rect.width;
+      return (x - rect.left) * scale;
+    }
+    canvas.addEventListener('touchstart', function(e){
+      let x = getTouchX(e);
+      if (Math.abs(x-basketX) < basketWidth) {
+        dragging = true;
+        touchOffset = x-basketX;
+      }
+    });
+    canvas.addEventListener('touchmove', function(e){
+      if (dragging) {
+        let x = getTouchX(e);
+        basketTargetX = x-touchOffset;
+      }
+      e.preventDefault();
+    }, {passive:false});
+    canvas.addEventListener('touchend', function(e){
+      dragging = false;
+    });
+
+    canvas.addEventListener('mousedown', function(e){
+      let x = getTouchX(e);
+      if (Math.abs(x-basketX) < basketWidth) {
+        dragging = true;
+        touchOffset = x-basketX;
+      }
+    });
+    canvas.addEventListener('mousemove', function(e){
+      if (dragging) {
+        let x = getTouchX(e);
+        basketTargetX = x-touchOffset;
+      }
+    });
+    canvas.addEventListener('mouseup', function(e){
+      dragging = false;
+    });
+
+    startBtn.onclick = startGame;
+
+    document.body.addEventListener('touchmove', function(e){
+      if (gameState === 'playing') e.preventDefault();
+    }, {passive:false});
+
+    window.addEventListener('load', () => {
+      resizeCanvas();
+      resetGame();
+      draw();
+      document.getElementById('goalMsg').innerHTML = 
+        `Score <span style="color:#00bfff;">${LEVELS[0].goal}</span> points to level up!`;
+    });
+
+    window.addEventListener('resize', () => {
+      resetGame();
+      draw();
+      if (gameState === 'start') {
+        document.getElementById('goalMsg').innerHTML = 
+          `Score <span style="color:#00bfff;">${LEVELS[0].goal}</span> points to level up!`;
+      }
+    });
+
+    draw();
+  </script>
+</body>
+</html>
 
