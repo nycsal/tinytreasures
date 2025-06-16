@@ -24,13 +24,10 @@
       margin-top: 18px;
       margin-bottom: 10px;
       user-select: none;
-      color: #1976d2;
-      background: linear-gradient(90deg, #1976d2 30%, #00bfff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #0a237a;
       text-shadow:
         2px 2px 0 #fff,
-        0 0 2px #fff,
+        0 0 4px #fff,
         0 2px 8px #b3d8ff77;
       border-radius: 12px;
       padding: 0.1em 0;
@@ -161,8 +158,8 @@
     const BABY_ITEMS = [
       {name: "Milk Bottle", emoji: "🍼"},
       {name: "Diaper", emoji: "🧷"},
-      {name: "Pacifier", emoji: "🪥"}, // Closest to pacifier
-      {name: "Onesie", emoji: "🩲"},   // Closest to onesie
+      {name: "Pacifier", emoji: "🪥"},
+      {name: "Onesie", emoji: "🩲"},
       {name: "Teddy Bear", emoji: "🧸"},
       {name: "Toy Car", emoji: "🚗"},
       {name: "Toy Block", emoji: "🟦"},
@@ -226,7 +223,8 @@
       basket = []; falling = []; dropTick = 0;
       basketX = canvas.width/2;
       basketTargetX = basketX;
-      basketWidth = Math.max(canvas.width * 0.25, 90);
+      // BASKET IS SMALLER!
+      basketWidth = Math.max(canvas.width * 0.18, 60); // was 0.25, now 0.18
       basketHeight = Math.max(canvas.height * 0.06, 44);
       redXTimer = 0; confetti = [];
       message = "";
