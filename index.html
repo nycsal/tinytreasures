@@ -19,47 +19,28 @@
       width: 100vw;
       text-align: center;
       font-family: 'Monoton', cursive, Arial, Helvetica, sans-serif;
-      font-size: 2.1em;
+      font-size: 2.8em;
       font-weight: normal;
-      letter-spacing: 2px;
-      color: #fff;
+      letter-spacing: 3px;
       margin-top: 18px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       user-select: none;
+      background: linear-gradient(90deg, #fff 40%, #00bfff 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: #fff;
       text-shadow:
-        0 0 5px #fff,
-        0 0 10px #fff,
-        0 0 20px #00bfff,
-        0 0 30px #00bfff,
-        0 0 40px #00bfff,
-        0 0 55px #00bfff,
-        0 0 75px #00bfff;
-      animation: neon-flicker 1.3s infinite alternate;
-    }
-    @keyframes neon-flicker {
-      from {
-        text-shadow:
-          0 0 5px #fff,
-          0 0 10px #fff,
-          0 0 20px #00bfff,
-          0 0 30px #00bfff,
-          0 0 40px #00bfff,
-          0 0 55px #00bfff,
-          0 0 75px #00bfff;
-      }
-      to {
-        text-shadow:
-          0 0 10px #fff,
-          0 0 20px #fff,
-          0 0 30px #00bfff,
-          0 0 40px #00bfff,
-          0 0 60px #00bfff,
-          0 0 80px #00bfff,
-          0 0 100px #00bfff;
-      }
+        0 2px 8px #1976d2,
+        0 0 6px #1976d2,
+        0 0 18px #00bfff,
+        2px 2px 0 #1976d2,
+        0 0 2px #fff;
+      filter: drop-shadow(0 0 2px #1976d2);
+      border-radius: 12px;
+      padding: 0.1em 0;
     }
     @media (max-width: 600px) {
-      #brand { font-size: 1.1em; }
+      #brand { font-size: 1.5em; }
     }
     #gameCanvas {
       background: linear-gradient(to bottom, #e3f0ff 0%, #f7eaff 100%);
@@ -153,9 +134,9 @@
   <div id="overlay" style="display:flex;">
     <h1>🦩 Tiny Treasures Baby Catch 🦩</h1>
     <p>
-      Storks fly by and drop babies!<br>
-      Move your basket to catch <b style="color:#00bfff;">three of the same color</b> baby.<br>
-      <span style="color:#1976d2;">If a baby is missed, it bounces back up for another chance!</span><br>
+      Storks fly by and drop baby items!<br>
+      Move your basket to catch <b style="color:#00bfff;">three of the same item</b>.<br>
+      <span style="color:#1976d2;">If an item is missed, it bounces back up for another chance!</span><br>
       <br>
       <b style="color:#00bfff;" id="goalMsg"></b><br>
       <br>
@@ -180,23 +161,25 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // --- BABY COLORS & STORKS ---
-    const BABY_COLORS = [
-      {name: "Pink", emoji: "👶🏻"},
-      {name: "Tan", emoji: "👶🏼"},
-      {name: "Brown", emoji: "👶🏽"},
-      {name: "Dark", emoji: "👶🏾"},
-      {name: "Deep", emoji: "👶🏿"},
-      {name: "Blue Blanket", emoji: "🍼"},
-      {name: "Pink Blanket", emoji: "🧸"}
+    // --- BABY ITEMS & STORKS ---
+    const BABY_ITEMS = [
+      {name: "Milk Bottle", emoji: "🍼"},
+      {name: "Diaper", emoji: "🧷"},
+      {name: "Pacifier", emoji: "🪥"}, // No pacifier emoji, using toothbrush as a playful stand-in
+      {name: "Onesie", emoji: "🩲"},   // No onesie emoji, using briefs as a playful stand-in
+      {name: "Rattle", emoji: "🎶"},   // No rattle emoji, using musical notes as a playful stand-in
+      {name: "Teddy Bear", emoji: "🧸"},
+      {name: "Toy Car", emoji: "🚗"},
+      {name: "Toy Block", emoji: "🟦"},
+      {name: "Rubber Duck", emoji: "🦆"}
     ];
     const STORKS = [
-      {emoji: "🦩"}, // Flamingo as stork (no stork emoji)
-      {emoji: "🕊️"}, // Dove for variety
-      {emoji: "🦢"}   // Swan for variety
+      {emoji: "🦩"},
+      {emoji: "🕊️"},
+      {emoji: "🦢"}
     ];
-    const GOLDEN_BABY = {name: "Golden Baby", emoji: "✨👶✨", golden: true};
-    const LEVEL_BABY_COUNTS = [3, 4, 5, BABY_COLORS.length];
+    const GOLDEN_ITEM = {name: "Golden Gift", emoji: "✨🎁✨", golden: true};
+    const LEVEL_ITEM_COUNTS = [4, 6, 8, BABY_ITEMS.length];
     const LEVELS = [
       {goal: 400, speed: 2, dropRate: 70},
       {goal: 800, speed: 2.5, dropRate: 55},
@@ -226,19 +209,19 @@
     const startBtn = document.getElementById('startBtn');
     let restartBtn = null;
 
-    // --- SMART BABY DROP LOGIC ---
-    function getCurrentBabies() {
-      let count = LEVEL_BABY_COUNTS[Math.min(level, LEVEL_BABY_COUNTS.length-1)];
-      return BABY_COLORS.slice(0, count);
+    // --- SMART ITEM DROP LOGIC ---
+    function getCurrentItems() {
+      let count = LEVEL_ITEM_COUNTS[Math.min(level, LEVEL_ITEM_COUNTS.length-1)];
+      return BABY_ITEMS.slice(0, count);
     }
-    function getNextBaby() {
-      const ITEMS = getCurrentBabies();
+    function getNextItem() {
+      const ITEMS = getCurrentItems();
       if (basket.length === 2 && basket[0] === basket[1]) {
         if (Math.random() < 0.8) {
           return ITEMS.find(item => item.name === basket[0]);
         }
       }
-      if (Math.random() < 0.06) return GOLDEN_BABY;
+      if (Math.random() < 0.06) return GOLDEN_ITEM;
       return ITEMS[Math.floor(Math.random() * ITEMS.length)];
     }
 
@@ -304,7 +287,7 @@
         <h1>${won ? "🎉 You Win! 🎉" : "Game Over"}</h1>
         <p>Your Score: <b style="color:#00bfff;">${score}</b></p>
         <p>${won ? "You are a Tiny Treasures Champion!" : "Try again to beat your high score!"}</p>
-        <p style="font-size:1.3em; color:#1976d2;">Visit us for your 3D/4D baby ultrasound!<br>👶🏻👶🏾🦩</p>
+        <p style="font-size:1.3em; color:#1976d2;">Visit us for your 3D/4D baby ultrasound!<br>🍼🧸🦩</p>
         <a href="https://tinytreasures3dultrasound.com/" target="_blank">Visit Tiny Treasures 3D Ultrasound!</a>
         <button id="restartBtn">Play Again</button>
       `;
@@ -324,7 +307,7 @@
         <p>Your Score: <b style="color:#00bfff;">${score}</b></p>
         <div style="font-size:1.2em;">
           Visit us for your 3D/4D baby ultrasound!<br>
-          <span style="color:#00bfff;">👶🏻👶🏾🦩</span><br>
+          <span style="color:#00bfff;">🍼🧸🦩</span><br>
           <b style="color:#ff5722;">Today's Special:</b> <span style="color:#1976d2;">Book online for best times!</span>
         </div>
       `;
@@ -356,17 +339,16 @@
       if (basketX < basketWidth/2) basketX = basketWidth/2;
       if (basketX > canvas.width-basketWidth/2) basketX = canvas.width-basketWidth/2;
 
-      // Move storks and drop babies
+      // Move storks and drop items
       for (let s of storks) {
         s.x += s.vx;
         s.dropTimer--;
-        // If stork is on screen and dropTimer is up, drop a baby
         if ((s.dir>0 && s.x > 40 && s.x < canvas.width-40) ||
             (s.dir<0 && s.x < canvas.width-40 && s.x > 40)) {
           if (s.dropTimer <= 0) {
-            let baby = getNextBaby();
+            let item = getNextItem();
             falling.push({
-              item: baby,
+              item: item,
               x: s.x,
               y: s.y+16,
               speedY: LEVELS[level].speed+Math.random()*1.2,
@@ -375,7 +357,6 @@
             s.dropTimer = Math.random()*80+30;
           }
         }
-        // Reset stork if off screen
         if (s.dir>0 && s.x > canvas.width+40) {
           s.x = -40;
           s.dropTimer = Math.random()*80+30;
@@ -385,11 +366,11 @@
         }
       }
 
-      // Move falling babies
+      // Move falling items
       for (let i=falling.length-1; i>=0; i--) {
         let f = falling[i];
         f.y += f.speedY;
-        // If baby missed, bounce up once
+        // If missed, bounce up once
         if (f.y > canvas.height-basketHeight*1.1 && !f.bounced) {
           if (Math.abs(f.x-basketX) > basketWidth/2+16) {
             f.speedY = -f.speedY*0.7;
@@ -397,13 +378,13 @@
             f.y = canvas.height-basketHeight*1.1;
           }
         }
-        // If baby is coming down again after bounce, allow catch
+        // If coming down after bounce, allow catch
         if (f.y > canvas.height-basketHeight*2 && Math.abs(f.x-basketX) < basketWidth/2+16) {
           // Caught!
           if (f.item.golden) {
             score += 200;
             confettiBurst();
-            message = "✨ Golden Baby! +200 ✨";
+            message = "✨ Golden Gift! +200 ✨";
           } else {
             basket.push(f.item.name);
             if (basket.length === 3) {
@@ -476,7 +457,7 @@
       ctx.fillStyle = "#1976d2";
       ctx.fillText(`Time: ${Math.ceil(timer)}`, canvas.width-18, 1+canvas.height*0.055);
 
-      // Draw falling babies
+      // Draw falling items
       for (let f of falling) {
         ctx.font = f.item.golden
           ? `bold ${Math.round(canvas.height*0.06)}px 'Baloo 2', Arial, sans-serif`
@@ -509,8 +490,8 @@
       ctx.strokeStyle = "#b3d8ff";
       ctx.stroke();
       for (let i=0;i<basket.length;i++) {
-        let idx = BABY_COLORS.findIndex(it=>it.name===basket[i]);
-        let emoji = idx>=0 ? BABY_COLORS[idx].emoji : "❓";
+        let idx = BABY_ITEMS.findIndex(it=>it.name===basket[i]);
+        let emoji = idx>=0 ? BABY_ITEMS[idx].emoji : "❓";
         ctx.font = `${Math.round(canvas.height*0.045)}px 'Baloo 2', Arial, sans-serif`;
         ctx.fillText(emoji, -24+24*i, -10);
       }
@@ -618,4 +599,3 @@
   </script>
 </body>
 </html>
-
