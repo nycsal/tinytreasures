@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Tiny Treasures 3D Ultrasound Game</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
@@ -18,29 +17,26 @@
     #brand {
       width: 100vw;
       text-align: center;
-      font-family: 'Monoton', cursive, Arial, Helvetica, sans-serif;
-      font-size: 2.8em;
-      font-weight: normal;
-      letter-spacing: 3px;
+      font-family: 'Baloo 2', Arial, Helvetica, sans-serif;
+      font-size: 2.5em;
+      font-weight: bold;
+      letter-spacing: 2px;
       margin-top: 18px;
       margin-bottom: 10px;
       user-select: none;
-      background: linear-gradient(90deg, #fff 40%, #00bfff 90%);
+      color: #1976d2;
+      background: linear-gradient(90deg, #1976d2 30%, #00bfff 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      color: #fff;
       text-shadow:
-        0 2px 8px #1976d2,
-        0 0 6px #1976d2,
-        0 0 18px #00bfff,
-        2px 2px 0 #1976d2,
-        0 0 2px #fff;
-      filter: drop-shadow(0 0 2px #1976d2);
+        2px 2px 0 #fff,
+        0 0 2px #fff,
+        0 2px 8px #b3d8ff77;
       border-radius: 12px;
       padding: 0.1em 0;
     }
     @media (max-width: 600px) {
-      #brand { font-size: 1.5em; }
+      #brand { font-size: 1.3em; }
     }
     #gameCanvas {
       background: linear-gradient(to bottom, #e3f0ff 0%, #f7eaff 100%);
@@ -136,7 +132,7 @@
     <p>
       Storks fly by and drop baby items!<br>
       Move your basket to catch <b style="color:#00bfff;">three of the same item</b>.<br>
-      <span style="color:#1976d2;">If an item is missed, it bounces back up for another chance!</span><br>
+      <span style="color:#1976d2;">If an item is missed, it disappears.</span><br>
       <br>
       <b style="color:#00bfff;" id="goalMsg"></b><br>
       <br>
@@ -165,9 +161,8 @@
     const BABY_ITEMS = [
       {name: "Milk Bottle", emoji: "🍼"},
       {name: "Diaper", emoji: "🧷"},
-      {name: "Pacifier", emoji: "🪥"}, // No pacifier emoji, using toothbrush as a playful stand-in
-      {name: "Onesie", emoji: "🩲"},   // No onesie emoji, using briefs as a playful stand-in
-      {name: "Rattle", emoji: "🎶"},   // No rattle emoji, using musical notes as a playful stand-in
+      {name: "Pacifier", emoji: "🪥"}, // Closest to pacifier
+      {name: "Onesie", emoji: "🩲"},   // Closest to onesie
       {name: "Teddy Bear", emoji: "🧸"},
       {name: "Toy Car", emoji: "🚗"},
       {name: "Toy Block", emoji: "🟦"},
@@ -351,8 +346,7 @@
               item: item,
               x: s.x,
               y: s.y+16,
-              speedY: LEVELS[level].speed+Math.random()*1.2,
-              bounced: false
+              speedY: LEVELS[level].speed+Math.random()*1.2
             });
             s.dropTimer = Math.random()*80+30;
           }
@@ -370,17 +364,8 @@
       for (let i=falling.length-1; i>=0; i--) {
         let f = falling[i];
         f.y += f.speedY;
-        // If missed, bounce up once
-        if (f.y > canvas.height-basketHeight*1.1 && !f.bounced) {
-          if (Math.abs(f.x-basketX) > basketWidth/2+16) {
-            f.speedY = -f.speedY*0.7;
-            f.bounced = true;
-            f.y = canvas.height-basketHeight*1.1;
-          }
-        }
-        // If coming down after bounce, allow catch
+        // If caught
         if (f.y > canvas.height-basketHeight*2 && Math.abs(f.x-basketX) < basketWidth/2+16) {
-          // Caught!
           if (f.item.golden) {
             score += 200;
             confettiBurst();
@@ -402,7 +387,7 @@
           }
           falling.splice(i,1);
         }
-        // Remove if off screen after bounce
+        // If missed, remove (no bounce)
         else if (f.y > canvas.height+40) {
           falling.splice(i,1);
         }
